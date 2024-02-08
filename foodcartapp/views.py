@@ -67,14 +67,26 @@ def register_order(request):
     # TODO это лишь заглушка
     order_description = request.data
     print(order_description)
+
+
+    if not 'products' in order_description:
+        return Response(f'Поле Продукты не может отсутствовать. Это обязательное поле')
+    if not order_description['products']:
+        return Response(f'Поле Продукты не может быть пустым. Это обязательное поле')
+    if not isinstance(order_description['products'], list):
+        return Response(f'В поле Продукты ожидается ввод списка')
+
+    
     order_db, created = Order.objects.get_or_create(
         firstname=order_description['firstname'],
         lastname=order_description['lastname'],
         contact_phone=order_description['phonenumber'],
         address=order_description['address']
     )
+    
     all_products = Product.objects.all()
     for product in order_description['products']:
+        
         Order_details.objects.get_or_create(
             order=order_db,
             product=all_products.get(id=product['product']),

@@ -145,8 +145,8 @@ class Order(models.Model):
     )
 
     class Meta:
-        verbose_name = 'заказ'
-        verbose_name_plural = 'заказы'
+        verbose_name = 'заказчик'
+        verbose_name_plural = 'заказчики'
 
     def __str__(self):
         return self.lastname
