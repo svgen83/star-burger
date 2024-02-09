@@ -2,6 +2,8 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
+from phonenumber_field.phonenumber import PhoneNumber
 
 import json
 
@@ -69,12 +71,27 @@ def register_order(request):
     print(order_description)
 
 
-    if not 'products' in order_description:
-        return Response(f'Поле Продукты не может отсутствовать. Это обязательное поле')
-    if not order_description['products']:
-        return Response(f'Поле Продукты не может быть пустым. Это обязательное поле')
+    if (not 'products' in order_description or not 'firstname' in order_description
+    or not 'lastname' in order_description or not 'phonenumber' in order_description
+    or not 'address' in order_description):
+        return Response(f'Отсутствует одно из полей заказа. Это обязательное поле',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+    if (not order_description['products']
+        or not order_description['firstname']
+        or not order_description['lastname']
+        or not order_description['phonenumber']
+        or not order_description['address']):
+        return Response(f'Поле заказа не может быть пустым. Введите данные',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
     if not isinstance(order_description['products'], list):
-        return Response(f'В поле Продукты ожидается ввод списка')
+        return Response(f'В поле Продукты ожидается ввод списка',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+    if not isinstance(order_description['firstname'], str):
+        return Response(f'В поле Имя ожидается ввод строки',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
+    if not PhoneNumber.from_string(order_description['phonenumber']).is_valid():
+        return Response(f'Введите корректные данные в поле Телефон',
+                        status=status.HTTP_406_NOT_ACCEPTABLE)
 
     
     order_db, created = Order.objects.get_or_create(
@@ -86,6 +103,9 @@ def register_order(request):
     
     all_products = Product.objects.all()
     for product in order_description['products']:
+        if not product['product'] in all_products:
+            return Response(f'Указанного товара нет',
+                            status=status.HTTP_406_NOT_ACCEPTABLE)
         
         Order_details.objects.get_or_create(
             order=order_db,
