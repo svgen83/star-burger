@@ -3,12 +3,22 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from phonenumber_field.phonenumber import PhoneNumber
+from rest_framework.serializers import ValidationError, Serializer, CharField
+
+from phonenumber_field.serializerfields import PhoneNumberField
 
 import json
 
 
 from .models import Product, Order, Order_details
+
+
+class OrderSerializer(Serializer):
+    firstname = CharField()
+    lastname = CharField()
+    address = CharField()
+    phonenumber = PhoneNumberField()
+
 
 
 def banners_list_api(request):
@@ -64,34 +74,61 @@ def product_list_api(request):
         'indent': 4,
     })
 
+
+def validate(request_data):
+    errors = []
+    if (not 'products' in request_data
+        or not 'firstname' in request_data
+        or not 'lastname' in request_data
+        or not 'phonenumber' in request_data
+        or not 'address' in request_data):
+        errors.append('Отсутствует одно из полей заказа')
+    if (not request_data['products']
+        or not request_data['firstname']
+        or not request_data['lastname']
+        or not request_data['phonenumber']
+        or not request_data['address']):
+        errors.append('Поле заказа не может быть пустым. Введите данные')
+    if not isinstance(request_data['products'], list):
+        errors.append('В поле Продукты ожидается ввод списка')
+    if not isinstance(request_data['firstname'], str):
+        errors.append('В поле Имя ожидается ввод строки')
+    if not PhoneNumber.from_string(request_data['phonenumber']).is_valid():
+        errors.append('Введите корректные данные в поле Телефон')
+    if errors:
+        raise ValidationError(errors)
+
+
+def validate_s(request_data):
+    serializer = OrderSerializer(data = request_data)
+    serializer.is_valid(raise_exception=True)
+
+
 @api_view(['POST'])
 def register_order(request):
     # TODO это лишь заглушка
     order_description = request.data
     print(order_description)
+    #validate(order_description)
+    validate_s(order_description)
 
 
-    if (not 'products' in order_description or not 'firstname' in order_description
-    or not 'lastname' in order_description or not 'phonenumber' in order_description
-    or not 'address' in order_description):
-        return Response(f'Отсутствует одно из полей заказа. Это обязательное поле',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-    if (not order_description['products']
-        or not order_description['firstname']
-        or not order_description['lastname']
-        or not order_description['phonenumber']
-        or not order_description['address']):
-        return Response(f'Поле заказа не может быть пустым. Введите данные',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(order_description['products'], list):
-        return Response(f'В поле Продукты ожидается ввод списка',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not isinstance(order_description['firstname'], str):
-        return Response(f'В поле Имя ожидается ввод строки',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
-    if not PhoneNumber.from_string(order_description['phonenumber']).is_valid():
-        return Response(f'Введите корректные данные в поле Телефон',
-                        status=status.HTTP_406_NOT_ACCEPTABLE)
+##    if (not 'products' in order_description or not 'firstname' in order_description
+##    or not 'lastname' in order_description or not 'phonenumber' in order_description
+##    or not 'address' in order_description):
+##        raise ValidationError(['Отсутствует одно из полей заказа. Это обязательное поле'])
+##    if (not order_description['products']
+##        or not order_description['firstname']
+##        or not order_description['lastname']
+##        or not order_description['phonenumber']
+##        or not order_description['address']):
+##        raise ValidationError(['Поле заказа не может быть пустым. Введите данные'])
+##    if not isinstance(order_description['products'], list):
+##        raise ValidationError(['В поле Продукты ожидается ввод списка'])
+##    if not isinstance(order_description['firstname'], str):
+##        raise ValidationError(['В поле Имя ожидается ввод строки'])
+##    if not PhoneNumber.from_string(order_description['phonenumber']).is_valid():
+##        raise ValidationError(['Введите корректные данные в поле Телефон'])
 
     
     order_db, created = Order.objects.get_or_create(
@@ -101,6 +138,10 @@ def register_order(request):
         address=order_description['address']
     )
     
+##    all_products = Product.objects.all()
+##    for product in order_description['products']:
+##        if not product['product'] in all_products:
+##            raise ValidationError(['Указанного товара нет'])
     all_products = Product.objects.all()
     for product in order_description['products']:
         if not product['product'] in all_products:
