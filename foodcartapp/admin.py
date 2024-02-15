@@ -115,5 +115,5 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Order_details)
 class Order_detailsAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product', 'product_count')
+    list_display = ('order', 'product', 'quantity')
 

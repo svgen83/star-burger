@@ -138,7 +138,7 @@ class Order(models.Model):
         max_length=100,
         blank=True,
     )
-    contact_phone = PhoneNumberField(
+    phonenumber = PhoneNumberField(
         'телефон заказчика',
         max_length=50,
         blank=True,
@@ -163,7 +163,7 @@ class Order_details(models.Model):
         verbose_name='Блюдо',
         related_name='products',
         on_delete=models.CASCADE)
-    product_count = models.IntegerField(
+    quantity = models.IntegerField(
         verbose_name='Количество')
 
     class Meta:

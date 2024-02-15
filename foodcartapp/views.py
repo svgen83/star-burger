@@ -3,7 +3,7 @@ from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.serializers import ValidationError, Serializer, CharField
+from rest_framework.serializers import ValidationError, ModelSerializer, CharField
 
 from phonenumber_field.serializerfields import PhoneNumberField
 
@@ -13,12 +13,17 @@ import json
 from .models import Product, Order, Order_details
 
 
-class OrderSerializer(Serializer):
-    firstname = CharField()
-    lastname = CharField()
-    address = CharField()
-    phonenumber = PhoneNumberField()
+class Order_detailsSerializer(ModelSerializer):
+    class Meta:
+        model = Order_details
+        fields = ['product', 'quantity']
 
+
+class OrderSerializer(ModelSerializer):
+    products = Order_detailsSerializer(many=True, allow_empty=False)
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname','address', 'phonenumber']
 
 
 def banners_list_api(request):
@@ -75,62 +80,13 @@ def product_list_api(request):
     })
 
 
-def validate(request_data):
-    errors = []
-    if (not 'products' in request_data
-        or not 'firstname' in request_data
-        or not 'lastname' in request_data
-        or not 'phonenumber' in request_data
-        or not 'address' in request_data):
-        errors.append('Отсутствует одно из полей заказа')
-    if (not request_data['products']
-        or not request_data['firstname']
-        or not request_data['lastname']
-        or not request_data['phonenumber']
-        or not request_data['address']):
-        errors.append('Поле заказа не может быть пустым. Введите данные')
-    if not isinstance(request_data['products'], list):
-        errors.append('В поле Продукты ожидается ввод списка')
-    if not isinstance(request_data['firstname'], str):
-        errors.append('В поле Имя ожидается ввод строки')
-    if not PhoneNumber.from_string(request_data['phonenumber']).is_valid():
-        errors.append('Введите корректные данные в поле Телефон')
-    if errors:
-        raise ValidationError(errors)
-
-
-def validate_s(request_data):
-    serializer = OrderSerializer(data = request_data)
-    serializer.is_valid(raise_exception=True)
-
-
 @api_view(['POST'])
 def register_order(request):
-    # TODO это лишь заглушка
-    order_description = request.data
-    print(order_description)
-    #validate(order_description)
-    validate_s(order_description)
 
-
-##    if (not 'products' in order_description or not 'firstname' in order_description
-##    or not 'lastname' in order_description or not 'phonenumber' in order_description
-##    or not 'address' in order_description):
-##        raise ValidationError(['Отсутствует одно из полей заказа. Это обязательное поле'])
-##    if (not order_description['products']
-##        or not order_description['firstname']
-##        or not order_description['lastname']
-##        or not order_description['phonenumber']
-##        or not order_description['address']):
-##        raise ValidationError(['Поле заказа не может быть пустым. Введите данные'])
-##    if not isinstance(order_description['products'], list):
-##        raise ValidationError(['В поле Продукты ожидается ввод списка'])
-##    if not isinstance(order_description['firstname'], str):
-##        raise ValidationError(['В поле Имя ожидается ввод строки'])
-##    if not PhoneNumber.from_string(order_description['phonenumber']).is_valid():
-##        raise ValidationError(['Введите корректные данные в поле Телефон'])
-
-    
+    serializer = OrderSerializer(request.data)
+    serializer.is_valid(raise_exception=True)
+    rder_description = serializer.validated_data
+   
     order_db, created = Order.objects.get_or_create(
         firstname=order_description['firstname'],
         lastname=order_description['lastname'],
@@ -138,16 +94,8 @@ def register_order(request):
         address=order_description['address']
     )
     
-##    all_products = Product.objects.all()
-##    for product in order_description['products']:
-##        if not product['product'] in all_products:
-##            raise ValidationError(['Указанного товара нет'])
     all_products = Product.objects.all()
     for product in order_description['products']:
-        if not product['product'] in all_products:
-            return Response(f'Указанного товара нет',
-                            status=status.HTTP_406_NOT_ACCEPTABLE)
-        
         Order_details.objects.get_or_create(
             order=order_db,
             product=all_products.get(id=product['product']),
