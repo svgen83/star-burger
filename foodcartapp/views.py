@@ -20,10 +20,18 @@ class Order_detailsSerializer(ModelSerializer):
 
 
 class OrderSerializer(ModelSerializer):
-    products = Order_detailsSerializer(many=True, allow_empty=False)
+    products = Order_detailsSerializer(many=True,
+                                       allow_empty=False,
+                                       write_only=True)
     class Meta:
         model = Order
         fields = ['firstname', 'lastname','address', 'phonenumber', 'products']
+
+
+class OrderFrontendSerializer(ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['firstname', 'lastname','address', 'phonenumber', 'id']
 
 
 def banners_list_api(request):
@@ -101,5 +109,17 @@ def register_order(request):
             product=all_products.get(id=product['product'].id),
             quantity=product['quantity']
             )
-    return Response({})
+
+    order_response = {
+        'id': order_db.id,
+        'firstname': order_description['firstname'],
+        'lastname': order_description['lastname'],
+        'phonenumber': order_description['phonenumber'],
+        'address': order_description['address']
+    }
+
+    serializer_response = OrderFrontendSerializer(data=order_response)
+    serializer_response.is_valid(raise_exception=True)
+
+    return Response(order_response)
 
