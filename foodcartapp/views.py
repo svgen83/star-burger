@@ -23,7 +23,7 @@ class OrderSerializer(ModelSerializer):
     products = Order_detailsSerializer(many=True, allow_empty=False)
     class Meta:
         model = Order
-        fields = ['firstname', 'lastname','address', 'phonenumber']
+        fields = ['firstname', 'lastname','address', 'phonenumber', 'products']
 
 
 def banners_list_api(request):
@@ -83,14 +83,14 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
 
-    serializer = OrderSerializer(request.data)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    rder_description = serializer.validated_data
+    order_description = serializer.validated_data
    
     order_db, created = Order.objects.get_or_create(
         firstname=order_description['firstname'],
         lastname=order_description['lastname'],
-        contact_phone=order_description['phonenumber'],
+        phonenumber=order_description['phonenumber'],
         address=order_description['address']
     )
     
@@ -98,8 +98,8 @@ def register_order(request):
     for product in order_description['products']:
         Order_details.objects.get_or_create(
             order=order_db,
-            product=all_products.get(id=product['product']),
-            product_count=product['quantity']
+            product=all_products.get(id=product['product'].id),
+            quantity=product['quantity']
             )
     return Response({})
 
