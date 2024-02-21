@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
+from django.db.models import F
 
 from foodcartapp.models import Product, Restaurant, Order, Order_details
 
@@ -90,32 +91,24 @@ def view_restaurants(request):
     })
 
 
-def get_cost(order):
-    order_details = Order_details.objects.filter(order=order).select_related('product')
-    cost = 0
-    for product in order_details:
-        price = product.product.price
-        quantity = product.quantity
-        cost += (price * quantity)
-    return cost
-
-
-def orders_for_manager(item):
-    return {
-        'id': item.id,
-        'lastname': item.lastname,
-        'phonenumber': item.phonenumber,
-        'address': item.address,
-        'cost': get_cost(item),
-    }
-
-
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.all()
+
+    order_items = []
+    for order in orders:
+        order_cost = Order_details.objects.filter(order=order).get_cost()
+        
+        order_items.append(
+            {
+                'id': order.id,
+                'cost': order_cost,
+                'client': order.firstname,
+                'phonenumber': order.phonenumber,
+                'address': order.address})
     context = {
-        'orders': [orders_for_manager(item) for item in orders]
+        'orders': order_items
     }
     print(context)
     return render(request,
