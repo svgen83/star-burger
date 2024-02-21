@@ -89,13 +89,26 @@ def view_restaurants(request):
         'restaurants': Restaurant.objects.all(),
     })
 
+
+def get_cost(order):
+    order_details = Order_details.objects.filter(order=order).select_related('product')
+    cost = 0
+    for product in order_details:
+        price = product.product.price
+        quantity = product.quantity
+        cost += (price * quantity)
+    return cost
+
+
 def orders_for_manager(item):
     return {
         'id': item.id,
         'lastname': item.lastname,
         'phonenumber': item.phonenumber,
         'address': item.address,
+        'cost': get_cost(item),
     }
+
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
