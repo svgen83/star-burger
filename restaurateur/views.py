@@ -107,10 +107,7 @@ def view_orders(request):
                 'client': order.firstname,
                 'phonenumber': order.phonenumber,
                 'address': order.address})
-    context = {
-        'orders': order_items
-    }
-    print(context)
+    context = {'orders': order_items}
     return render(request,
                   template_name='order_items.html',
                   context=context)

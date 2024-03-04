@@ -108,12 +108,19 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
+class Order_detailsInline(admin.StackedInline):
+    model = Order_details
+    fields = [('product', 'quantity', 'cost'), ]
+    extra = 0
+
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
+    inlines = [Order_detailsInline]
     list_display = ('firstname', 'lastname')
 
 
 @admin.register(Order_details)
 class Order_detailsAdmin(admin.ModelAdmin):
-    list_display = ('order', 'product', 'quantity')
+    list_display = ('order', 'product', 'quantity', 'cost')
 
