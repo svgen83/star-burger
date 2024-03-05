@@ -159,7 +159,7 @@ class Order_detailsQuerySet(models.QuerySet):
 
     def get_cost(self):
         order_details = self.annotate(
-            order_cost=F('cost') * F('quantity'))
+            order_cost=F('product__price') * F('quantity'))
         cost = 0
         for order_detail in order_details:
             cost += order_detail.order_cost

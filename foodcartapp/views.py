@@ -11,27 +11,7 @@ import json
 
 
 from .models import Product, Order, Order_details
-
-
-class Order_detailsSerializer(ModelSerializer):
-    class Meta:
-        model = Order_details
-        fields = ['product', 'quantity']
-
-
-class OrderSerializer(ModelSerializer):
-    products = Order_detailsSerializer(many=True,
-                                       allow_empty=False,
-                                       write_only=True)
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname','address', 'phonenumber', 'products']
-
-
-class OrderFrontendSerializer(ModelSerializer):
-    class Meta:
-        model = Order
-        fields = ['firstname', 'lastname','address', 'phonenumber', 'id']
+from .serializers import Order_detailsSerializer, OrderSerializer, OrderFrontendSerializer
 
 
 def banners_list_api(request):
@@ -90,10 +70,10 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     order_description = serializer.validated_data
+    
    
     order_db, created = Order.objects.get_or_create(
         firstname=order_description['firstname'],
@@ -103,11 +83,12 @@ def register_order(request):
     )
     
     all_products = Product.objects.all()
-    for product in order_description['products']:
+    for product_item in order_description['products']:
         Order_details.objects.get_or_create(
             order=order_db,
-            product=all_products.get(id=product['product'].id),
-            quantity=product['quantity']
+            product=all_products.get(id=product_item['product'].id),
+            quantity=product_item['quantity'],
+            cost=all_products.get(id=product_item['product'].id).price * product_item['quantity']
             )
 
     order_response = {
@@ -120,6 +101,7 @@ def register_order(request):
 
     serializer_response = OrderFrontendSerializer(data=order_response)
     serializer_response.is_valid(raise_exception=True)
+    print(order_response)
 
     return Response(order_response)
 
