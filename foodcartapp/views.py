@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.serializers import ValidationError, ModelSerializer, CharField
 
 from phonenumber_field.serializerfields import PhoneNumberField
+from django.db import transaction
 
 import json
 
@@ -67,7 +68,7 @@ def product_list_api(request):
         'indent': 4,
     })
 
-
+@transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
@@ -101,7 +102,7 @@ def register_order(request):
 
     serializer_response = OrderFrontendSerializer(data=order_response)
     serializer_response.is_valid(raise_exception=True)
-    print(order_response)
+
 
     return Response(order_response)
 
