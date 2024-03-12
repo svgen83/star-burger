@@ -18,6 +18,7 @@
       <th>Клиент</th>
       <th>Телефон</th>
       <th>Адрес доставки</th>
+			<th>Редактировать</th>
     </tr>
 
     {% for order in orders %}
@@ -27,6 +28,7 @@
         <td>{{ order.client }}</td>
         <td>{{ order.phonenumber }}</td>
         <td>{{ order.address }}</td>
+				<td><a href="{{ order.edit_order }}">Редактировать</a></td>
       </tr>
     {% endfor %}
    </table>
