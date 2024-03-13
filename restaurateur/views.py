@@ -97,6 +97,7 @@ def view_restaurants(request):
 def view_orders(request):
     orders = Order.objects.all().order_by('-id')
     order_items = []
+    current_url = request.path
     for order in orders:
         order_cost = order.client.filter(order=order).aggregate(cost=Sum('cost'))
         order_items.append(
@@ -106,7 +107,8 @@ def view_orders(request):
                 'client': order.lastname,
                 'phonenumber': order.phonenumber,
                 'address': order.address,
-                'edit_order': reverse('admin:foodcartapp_order_change', args=(order.id,))})
+                'edit_order': reverse('admin:foodcartapp_order_change', args=(order.id,)),
+                'current_url': current_url})
     context = {'orders': order_items}
     return render(request,
                   template_name='order_items.html',

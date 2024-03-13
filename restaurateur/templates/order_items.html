@@ -28,7 +28,7 @@
         <td>{{ order.client }}</td>
         <td>{{ order.phonenumber }}</td>
         <td>{{ order.address }}</td>
-				<td><a href="{{ order.edit_order }}">Редактировать</a></td>
+				<td><a href="{{ order.edit_order }}?next={{ order.current_url|urlencode}}">Редактировать</a></td>
       </tr>
     {% endfor %}
    </table>
