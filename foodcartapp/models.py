@@ -159,6 +159,11 @@ class Order(models.Model):
         default='N',
         db_index=True
     )
+    comment = models.CharField(
+        'Комментарий',
+        max_length=200,
+        blank=True
+    )
 
     class Meta:
         verbose_name = 'заказчик'
