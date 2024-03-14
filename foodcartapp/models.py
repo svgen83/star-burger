@@ -134,6 +134,11 @@ class Order(models.Model):
         ('D', 'Delivery'),
         ('C', 'Completed'),
     )
+    PAYMENT = (
+        ('CASH', 'Наличные'),
+        ('CARD', 'Банковская карта'),
+        ('SBP', 'Cистема быстрых платежей'),
+    )
  
     firstname = models.CharField(
         'имя заказчика',
@@ -182,6 +187,13 @@ class Order(models.Model):
         'Время доставки',
         null=True,
         blank=True,
+        db_index=True
+    )
+    payment_method = models.CharField(
+        'Способ оплаты',
+        max_length=4,
+        choices=PAYMENT,
+        default='CASH',
         db_index=True
     )
 

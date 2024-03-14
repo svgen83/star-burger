@@ -20,6 +20,7 @@
       <th>Адрес доставки</th>
 			<th>Комментарий</th>
 			<th>Статус заказа</th>
+			<th>Способ оплаты</th>
 			<th>Редактировать</th>
     </tr>
 
@@ -32,6 +33,7 @@
         <td>{{ order.address }}</td>
 				<td>{{ order.comment }}</td>
 				<td>{{ order.order_status }}</td>
+				<td>{{ order.payment_method }}</td>
 				<td><a href="{{ order.edit_order }}?next={{ order.current_url|urlencode}}">Редактировать</a></td>
       </tr>
     {% endfor %}
