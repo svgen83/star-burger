@@ -79,7 +79,7 @@ def view_products(request):
             (product, ordered_availability)
         )
 
-    return render(request, template_name="products_list.html", context={
+    return render(request,template_name="products_list.html", context={
         'products_with_restaurant_availability': products_with_restaurant_availability,
         'restaurants': restaurants,
     })
@@ -95,7 +95,7 @@ def view_restaurants(request):
 @transaction.atomic
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.all().order_by('-id')
+    orders = Order.objects.exclude(status='C').order_by('-id')
     order_items = []
     current_url = request.path
     for order in orders:
@@ -108,7 +108,9 @@ def view_orders(request):
                 'phonenumber': order.phonenumber,
                 'address': order.address,
                 'edit_order': reverse('admin:foodcartapp_order_change', args=(order.id,)),
-                'current_url': current_url})
+                'current_url': current_url,
+                'order_status': order.get_status_display()
+                })
     context = {'orders': order_items}
     return render(request,
                   template_name='order_items.html',

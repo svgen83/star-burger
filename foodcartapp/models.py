@@ -127,6 +127,13 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    ORDER_STATUS = (
+        ('N', 'New order is accepted'),
+        ('P', 'Order is being prepared'),
+        ('D', 'Delivery'),
+        ('C', 'Completed'),
+    )
+ 
     firstname = models.CharField(
         'имя заказчика',
         max_length=50
@@ -144,6 +151,13 @@ class Order(models.Model):
         'телефон заказчика',
         max_length=50,
         blank=True,
+    )
+    status = models.CharField(
+        'Статус заказа',
+        max_length=1,
+        choices=ORDER_STATUS,
+        default='N',
+        db_index=True
     )
 
     class Meta:
