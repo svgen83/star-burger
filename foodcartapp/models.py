@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
+from django.utils import timezone
 
 from django.db.models import F
 
@@ -163,6 +164,25 @@ class Order(models.Model):
         'Комментарий',
         max_length=200,
         blank=True
+    )
+    order_time = models.DateTimeField(
+        'Время создания заказ',
+        null=True,
+        blank=True,
+        default=timezone.now,
+        db_index=True
+    )
+    call_time = models.DateTimeField(
+        'Время звонка',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+    delivery_time = models.DateTimeField(
+        'Время доставки',
+        null=True,
+        blank=True,
+        db_index=True
     )
 
     class Meta:
