@@ -121,7 +121,8 @@ class Order_detailsInline(admin.StackedInline):
 class OrderAdmin(admin.ModelAdmin):
     inlines = [Order_detailsInline]
     list_display = ('firstname', 'lastname',
-                    'status', 'comment', 'payment_method')
+                    'status', 'comment', 'payment_method',
+                    'restaurant')
 
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)

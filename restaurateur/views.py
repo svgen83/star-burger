@@ -9,7 +9,7 @@ from django.contrib.auth import views as auth_views
 
 from django.db.models import F, Sum
 
-from foodcartapp.models import Product, Restaurant, Order, Order_details
+from foodcartapp.models import Product, Restaurant, Order, Order_details, RestaurantMenuItem
 from django.db import transaction
 
 
@@ -99,7 +99,20 @@ def view_orders(request):
     order_items = []
     current_url = request.path
     for order in orders:
-        order_cost = order.client.filter(order=order).aggregate(cost=Sum('cost'))
+        order_cost = order.client.filter(
+            order=order).aggregate(cost=Sum('cost'))
+##        print(order.restaurant)
+        
+        restaraunts = RestaurantMenuItem.objects.all()
+        ordered_products = order.client.select_related(
+            'product').values('product').distinct()
+        print(ordered_products)
+        restaurants = Restaurant.objects.all()
+        for product in ordered_products:
+            menus = RestaurantMenuItem.objects.filter(
+                product=product['product'])
+            restaurants = restaurants.filter(menu_items__in=menus)
+        
         order_items.append(
             {
                 'id': order.id,
@@ -111,7 +124,9 @@ def view_orders(request):
                 'current_url': current_url,
                 'order_status': order.get_status_display(),
                 'comment': order.comment,
-                'payment_method': order.get_payment_method_display()
+                'payment_method': order.get_payment_method_display(),
+                'chosed_restaurant': order.restaurant,
+                'restaurants': restaurants,
                 })
     context = {'orders': order_items}
     return render(request,

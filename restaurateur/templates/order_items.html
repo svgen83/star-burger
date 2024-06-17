@@ -21,6 +21,7 @@
 			<th>Комментарий</th>
 			<th>Статус заказа</th>
 			<th>Способ оплаты</th>
+			<th>Ресторан</th>
 			<th>Редактировать</th>
     </tr>
 
@@ -34,6 +35,20 @@
 				<td>{{ order.comment }}</td>
 				<td>{{ order.order_status }}</td>
 				<td>{{ order.payment_method }}</td>
+				<td> 
+				{% if not	order.chosed_restaurant %}
+				  {% if order.restaurants %}
+					Заказ может быть приготовлен в ресторанах:
+             {% for restaurant in order.restaurants %}
+                 <li>{{ restaurant }}</li>
+              {% endfor %}
+          {% else %}
+             Подходящие рестораны не найдены
+          {% endif %}
+				{% else %}
+          Готовится в {{ order.chosed_restaurant }}
+        {% endif %}
+				</td>
 				<td><a href="{{ order.edit_order }}?next={{ order.current_url|urlencode}}">Редактировать</a></td>
       </tr>
     {% endfor %}
