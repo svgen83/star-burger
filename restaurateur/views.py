@@ -12,6 +12,11 @@ from django.db.models import F, Sum
 from foodcartapp.models import Product, Restaurant, Order, Order_details, RestaurantMenuItem
 from django.db import transaction
 
+from django.conf import settings
+from environs import Env
+
+from restaurateur.geotools import fetch_coordinates, get_distance
+
 
 class Login(forms.Form):
     username = forms.CharField(
@@ -101,17 +106,30 @@ def view_orders(request):
     for order in orders:
         order_cost = order.client.filter(
             order=order).aggregate(cost=Sum('cost'))
-##        print(order.restaurant)
+
+        client_coordinates = fetch_coordinates(
+            settings.YANDEX_API_KEY, order.address)
+        chosed_restaurant_distance = 0
+
+        if order.restaurant:
+            chosed_restaurant_distance = get_distance(
+                client_coordinates,
+                settings.YANDEX_API_KEY,
+                order.restaurant.address)
         
         restaraunts = RestaurantMenuItem.objects.all()
         ordered_products = order.client.select_related(
             'product').values('product').distinct()
-        print(ordered_products)
+
         restaurants = Restaurant.objects.all()
         for product in ordered_products:
             menus = RestaurantMenuItem.objects.filter(
                 product=product['product'])
             restaurants = restaurants.filter(menu_items__in=menus)
+            for restaurant in restaurants:
+                print(get_distance(client_coordinates,
+                             settings.YANDEX_API_KEY,
+                             restaurant.address))      
         
         order_items.append(
             {
@@ -126,6 +144,7 @@ def view_orders(request):
                 'comment': order.comment,
                 'payment_method': order.get_payment_method_display(),
                 'chosed_restaurant': order.restaurant,
+                'chosed_restaurant_distance': chosed_restaurant_distance,
                 'restaurants': restaurants,
                 })
     context = {'orders': order_items}

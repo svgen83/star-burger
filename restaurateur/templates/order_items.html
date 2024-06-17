@@ -46,7 +46,8 @@
              Подходящие рестораны не найдены
           {% endif %}
 				{% else %}
-          Готовится в {{ order.chosed_restaurant }}
+          <li>Готовится в {{ order.chosed_restaurant }}</li>
+					<li>Расстояние до ресторана {{ order.chosed_restaurant_distance }} км</li>
         {% endif %}
 				</td>
 				<td><a href="{{ order.edit_order }}?next={{ order.current_url|urlencode}}">Редактировать</a></td>

@@ -21,7 +21,15 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
-
+    longitude = models.CharField(
+        'Долгота', max_length=10,
+        blank=True, null=True
+        )
+    latitude = models.CharField(
+        'Широта', max_length=10,
+        blank=True, null=True
+        )
+    
     class Meta:
         verbose_name = 'ресторан'
         verbose_name_plural = 'рестораны'
