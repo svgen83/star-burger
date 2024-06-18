@@ -11,8 +11,10 @@ from django.db import transaction
 import json
 
 
-from .models import Product, Order, Order_details
+from .models import Product, Order, Order_details, Location
 from .serializers import Order_detailsSerializer, OrderSerializer, OrderFrontendSerializer
+from restaurateur.geotools import fetch_coordinates
+from django.conf import settings
 
 
 def banners_list_api(request):
@@ -82,6 +84,15 @@ def register_order(request):
         phonenumber=order_description['phonenumber'],
         address=order_description['address']
     )
+    if not Location.objects.filter(address=order_description['address']):
+        coordinates = fetch_coordinates(settings.YANDEX_API_KEY,
+                                        order_description['address'])
+        if coordinates:
+            Location.objects.create(
+                address = order_description['address'],
+                latitude = coordinates[0],
+                longitude = coordinates[1]
+            )
     
     all_products = Product.objects.all()
     for product_item in order_description['products']:

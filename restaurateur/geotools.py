@@ -23,9 +23,12 @@ def fetch_coordinates(apikey, address):
     return lat, lon
 
 
-def get_distance(client_coordinates,apikey,rest_address):
-    restaurant_coordinates = fetch_coordinates(
-                apikey, rest_address)
+def get_distance(client_coordinates,
+                 restaurant_lat,
+                 restaurant_long):
+    restaurant_coordinates = (
+        float(restaurant_lat),
+        float(restaurant_long))
     dist = distance(client_coordinates,
                     restaurant_coordinates).km
     return round(dist,2)

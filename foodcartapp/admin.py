@@ -12,6 +12,7 @@ from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
 from .models import Order_details
+from .models import Location
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
@@ -136,3 +137,7 @@ class OrderAdmin(admin.ModelAdmin):
 class Order_detailsAdmin(admin.ModelAdmin):
     list_display = ('order', 'product', 'quantity', 'cost')
 
+
+@admin.register(Location)
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ('address', 'last_update')

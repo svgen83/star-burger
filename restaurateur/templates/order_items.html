@@ -40,8 +40,11 @@
 				  {% if order.restaurants %}
 					Заказ может быть приготовлен в ресторанах:
              {% for restaurant in order.restaurants %}
+						 {% for distancese in order.distanceses %}
                  <li>{{ restaurant }}</li>
-              {% endfor %}
+                 <li> Расстояние до ресторана{{ distancese }} км</li>
+						{% endfor %}
+            {% endfor %}
           {% else %}
              Подходящие рестораны не найдены
           {% endif %}

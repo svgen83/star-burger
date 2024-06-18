@@ -9,7 +9,9 @@ from django.contrib.auth import views as auth_views
 
 from django.db.models import F, Sum
 
-from foodcartapp.models import Product, Restaurant, Order, Order_details, RestaurantMenuItem
+from foodcartapp.models import (Product, Restaurant,
+                                Order, Order_details,
+                                RestaurantMenuItem, Location)
 from django.db import transaction
 
 from django.conf import settings
@@ -103,33 +105,51 @@ def view_orders(request):
     orders = Order.objects.exclude(status='C').order_by('-id')
     order_items = []
     current_url = request.path
+    
     for order in orders:
         order_cost = order.client.filter(
             order=order).aggregate(cost=Sum('cost'))
+        locations = Location.objects.all()
+        client_coordinates = tuple()
+        distanceses = []
 
-        client_coordinates = fetch_coordinates(
-            settings.YANDEX_API_KEY, order.address)
+        for location in locations:
+          if location.address == order.address:
+            client_coordinates = (location.latitude, location.longitude)
+            if not client_coordinates:
+                client_coordinates = fetch_coordinates(
+                settings.YANDEX_API_KEY, order.address)
+
+                Location.objects.create(
+                address=order.address,
+                latitude=client_coordinates[0],
+                longitude=client_coordinates[1])
+
         chosed_restaurant_distance = 0
 
         if order.restaurant:
             chosed_restaurant_distance = get_distance(
                 client_coordinates,
-                settings.YANDEX_API_KEY,
-                order.restaurant.address)
+                order.restaurant.latitude,
+                order.restaurant.longitude)
         
         restaraunts = RestaurantMenuItem.objects.all()
         ordered_products = order.client.select_related(
             'product').values('product').distinct()
 
-        restaurants = Restaurant.objects.all()
+        restaurants = Restaurant.objects.all()       
+        
         for product in ordered_products:
             menus = RestaurantMenuItem.objects.filter(
                 product=product['product'])
             restaurants = restaurants.filter(menu_items__in=menus)
             for restaurant in restaurants:
-                print(get_distance(client_coordinates,
-                             settings.YANDEX_API_KEY,
-                             restaurant.address))      
+               distanceses.append(
+                   get_distance(
+                   client_coordinates,
+                   restaurant.latitude,
+                   restaurant.longitude)
+                   )      
         
         order_items.append(
             {
@@ -146,6 +166,7 @@ def view_orders(request):
                 'chosed_restaurant': order.restaurant,
                 'chosed_restaurant_distance': chosed_restaurant_distance,
                 'restaurants': restaurants,
+                'distanceses': distanceses,
                 })
     context = {'orders': order_items}
     return render(request,

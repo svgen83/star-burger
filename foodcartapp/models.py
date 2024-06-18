@@ -5,6 +5,9 @@ from django.utils import timezone
 
 from django.db.models import F
 
+from django.conf import settings
+from restaurateur.geotools import fetch_coordinates
+
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -22,14 +25,19 @@ class Restaurant(models.Model):
         blank=True,
     )
     longitude = models.CharField(
-        'Долгота', max_length=10,
+        'Долгота', max_length=20,
         blank=True, null=True
         )
     latitude = models.CharField(
-        'Широта', max_length=10,
+        'Широта', max_length=20,
         blank=True, null=True
         )
-    
+
+    def save(self, *args, **kwargs):
+        self.latitude, self.longitude = fetch_coordinates(
+            settings.YANDEX_API_KEY,
+            self.address)
+        super(Restaurant, self).save(*args, **kwargs) 
     class Meta:
         verbose_name = 'ресторан'
         verbose_name_plural = 'рестораны'
@@ -262,5 +270,33 @@ class Order_details(models.Model):
     def __str__(self):
         return self.order.lastname
 
+
+class Location(models.Model):
+    address = models.CharField(
+        'Адрес',
+        max_length=100,
+        blank=True, null=True,
+        unique=True
+    )
+    longitude = models.CharField(
+        'Долгота',
+        blank=True, null=True,
+        max_length=10)
+    latitude = models.CharField(
+        'Широта',
+        blank=True, null=True,
+        max_length=10)
+    last_update = models.DateField(
+        'Дата последнего обновления',
+        blank=True, null=True,
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = 'Месторасположение'
+        verbose_name_plural = 'Месторасположения'
+
+    def __str__(self):
+        return self.address
 
  
