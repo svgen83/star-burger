@@ -1,9 +1,6 @@
 import requests
 from geopy.distance import distance
 
-from django.conf import settings
-from environs import Env
-
 
 def fetch_coordinates(apikey, address):
     base_url = "https://geocode-maps.yandex.ru/1.x"
@@ -13,7 +10,8 @@ def fetch_coordinates(apikey, address):
         "format": "json",
     })
     response.raise_for_status()
-    found_places = response.json()['response']['GeoObjectCollection']['featureMember']
+    found_places = response.json()[
+        'response']['GeoObjectCollection']['featureMember']
 
     if not found_places:
         return None
@@ -31,4 +29,4 @@ def get_distance(client_coordinates,
         float(restaurant_long))
     dist = distance(client_coordinates,
                     restaurant_coordinates).km
-    return round(dist,2)
+    return round(dist, 2)

@@ -2,17 +2,11 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.serializers import ValidationError, ModelSerializer, CharField
 
-from phonenumber_field.serializerfields import PhoneNumberField
 from django.db import transaction
 
-import json
-
-
-from .models import Product, Order, Order_details, Location
-from .serializers import Order_detailsSerializer, OrderSerializer, OrderFrontendSerializer
+from .models import Product, Order, OrderDetails, Location
+from .serializers import OrderSerializer, OrderFrontendSerializer
 from restaurateur.geotools import fetch_coordinates
 from django.conf import settings
 
@@ -39,7 +33,6 @@ def banners_list_api(request):
         'ensure_ascii': False,
         'indent': 4,
     })
-
 
 
 def product_list_api(request):
@@ -70,14 +63,14 @@ def product_list_api(request):
         'indent': 4,
     })
 
+
 @transaction.atomic
 @api_view(['POST'])
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     order_description = serializer.validated_data
-    
-   
+
     order_db, created = Order.objects.get_or_create(
         firstname=order_description['firstname'],
         lastname=order_description['lastname'],
@@ -89,18 +82,21 @@ def register_order(request):
                                         order_description['address'])
         if coordinates:
             Location.objects.create(
-                address = order_description['address'],
-                latitude = coordinates[0],
-                longitude = coordinates[1]
+                address=order_description['address'],
+                latitude=coordinates[0],
+                longitude=coordinates[1]
             )
-    
+
     all_products = Product.objects.all()
     for product_item in order_description['products']:
-        Order_details.objects.get_or_create(
+        OrderDetails.objects.get_or_create(
             order=order_db,
             product=all_products.get(id=product_item['product'].id),
             quantity=product_item['quantity'],
-            cost=all_products.get(id=product_item['product'].id).price * product_item['quantity']
+            cost=all_products.get(
+                id=product_item[
+                    'product'].id).price * product_item[
+                        'quantity']
             )
 
     order_response = {
@@ -113,7 +109,4 @@ def register_order(request):
 
     serializer_response = OrderFrontendSerializer(data=order_response)
     serializer_response.is_valid(raise_exception=True)
-
-
     return Response(order_response)
-

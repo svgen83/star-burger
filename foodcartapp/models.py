@@ -37,7 +37,8 @@ class Restaurant(models.Model):
         self.latitude, self.longitude = fetch_coordinates(
             settings.YANDEX_API_KEY,
             self.address)
-        super(Restaurant, self).save(*args, **kwargs) 
+        super(Restaurant, self).save(*args, **kwargs)
+
     class Meta:
         verbose_name = 'ресторан'
         verbose_name_plural = 'рестораны'
@@ -155,7 +156,7 @@ class Order(models.Model):
         ('CARD', 'Банковская карта'),
         ('SBP', 'Cистема быстрых платежей'),
     )
- 
+
     firstname = models.CharField(
         'имя заказчика',
         max_length=50
@@ -221,7 +222,6 @@ class Order(models.Model):
         blank=True
     )
 
-
     class Meta:
         verbose_name = 'заказчик'
         verbose_name_plural = 'заказчики'
@@ -230,8 +230,7 @@ class Order(models.Model):
         return self.lastname
 
 
-
-class Order_detailsQuerySet(models.QuerySet):
+class OrderDetailsQuerySet(models.QuerySet):
 
     def get_cost(self):
         order_details = self.annotate(
@@ -239,10 +238,10 @@ class Order_detailsQuerySet(models.QuerySet):
         cost = 0
         for order_detail in order_details:
             cost += order_detail.order_cost
-        return cost   
+        return cost
 
 
-class Order_details(models.Model):
+class OrderDetails(models.Model):
     order = models.ForeignKey(
         Order,
         verbose_name='Заказ',
@@ -261,7 +260,7 @@ class Order_details(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(0)])
 
-    objects = Order_detailsQuerySet.as_manager()
+    objects = OrderDetailsQuerySet.as_manager()
 
     class Meta:
         verbose_name = 'состав заказа'
@@ -298,5 +297,3 @@ class Location(models.Model):
 
     def __str__(self):
         return self.address
-
- 

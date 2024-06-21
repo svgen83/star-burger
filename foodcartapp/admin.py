@@ -11,7 +11,7 @@ from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
 from .models import Order
-from .models import Order_details
+from .models import OrderDetails
 from .models import Location
 
 
@@ -96,14 +96,20 @@ class ProductAdmin(admin.ModelAdmin):
     def get_image_preview(self, obj):
         if not obj.image:
             return 'выберите картинку'
-        return format_html('<img src="{url}" style="max-height: 200px;"/>', url=obj.image.url)
+        return format_html(
+            '<img src="{url}" style="max-height: 200px;"/>',
+            url=obj.image.url)
     get_image_preview.short_description = 'превью'
 
     def get_image_list_preview(self, obj):
         if not obj.image or not obj.id:
             return 'нет картинки'
-        edit_url = reverse('admin:foodcartapp_product_change', args=(obj.id,))
-        return format_html('<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>', edit_url=edit_url, src=obj.image.url)
+        edit_url = reverse(
+            'admin:foodcartapp_product_change',
+            args=(obj.id,))
+        return format_html(
+            '<a href="{edit_url}"><img src="{src}" style="max-height: 50px;"/></a>',
+            edit_url=edit_url, src=obj.image.url)
     get_image_list_preview.short_description = 'превью'
 
 
@@ -112,29 +118,30 @@ class ProductAdmin(admin.ModelAdmin):
     pass
 
 
-class Order_detailsInline(admin.StackedInline):
-    model = Order_details
+class OrderDetailsInline(admin.StackedInline):
+    model = OrderDetails
     fields = [('product', 'quantity', 'cost'), ]
     extra = 0
 
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    inlines = [Order_detailsInline]
+    inlines = [OrderDetailsInline]
     list_display = ('firstname', 'lastname',
                     'status', 'comment', 'payment_method',
                     'restaurant')
 
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)
-        if "next" in request.GET and url_has_allowed_host_and_scheme(request.GET['next'], ALLOWED_HOSTS):
+        if "next" in request.GET and url_has_allowed_host_and_scheme(
+            request.GET['next'], ALLOWED_HOSTS):
             return HttpResponseRedirect(request.GET['next'])
         else:
             return res
 
 
-@admin.register(Order_details)
-class Order_detailsAdmin(admin.ModelAdmin):
+@admin.register(OrderDetails)
+class OrderDetailsAdmin(admin.ModelAdmin):
     list_display = ('order', 'product', 'quantity', 'cost')
 
 

@@ -7,16 +7,12 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
 
-from django.db.models import F, Sum
+from django.db.models import Sum
 
 from foodcartapp.models import (Product, Restaurant,
-                                Order, Order_details,
-                                RestaurantMenuItem, Location)
+                                Order, RestaurantMenuItem, Location)
 from django.db import transaction
-
 from django.conf import settings
-from environs import Env
-
 from restaurateur.geotools import fetch_coordinates, get_distance
 
 
@@ -79,17 +75,22 @@ def view_products(request):
 
     products_with_restaurant_availability = []
     for product in products:
-        availability = {item.restaurant_id: item.availability for item in product.menu_items.all()}
-        ordered_availability = [availability.get(restaurant.id, False) for restaurant in restaurants]
+        availability = {
+            item.restaurant_id: item.availability for item in product.menu_items.all()}
+        ordered_availability = [
+            availability.get(restaurant.id,
+                             False) for restaurant in restaurants]
 
         products_with_restaurant_availability.append(
             (product, ordered_availability)
         )
 
-    return render(request,template_name="products_list.html", context={
-        'products_with_restaurant_availability': products_with_restaurant_availability,
-        'restaurants': restaurants,
-    })
+    return render(request,
+                  template_name="products_list.html",
+                  context={
+                      'products_with_restaurant_availability': products_with_restaurant_availability,
+                      'restaurants': restaurants,
+                      })
 
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
@@ -105,7 +106,7 @@ def view_orders(request):
     orders = Order.objects.exclude(status='C').order_by('-id')
     order_items = []
     current_url = request.path
-    
+
     for order in orders:
         order_cost = order.client.filter(
             order=order).aggregate(cost=Sum('cost'))
@@ -114,17 +115,15 @@ def view_orders(request):
         distanceses = []
 
         for location in locations:
-          if location.address == order.address:
-            client_coordinates = (location.latitude, location.longitude)
-            if not client_coordinates:
-                client_coordinates = fetch_coordinates(
-                settings.YANDEX_API_KEY, order.address)
-
-                Location.objects.create(
-                address=order.address,
-                latitude=client_coordinates[0],
-                longitude=client_coordinates[1])
-
+            if location.address == order.address:
+                client_coordinates = (location.latitude, location.longitude)
+                if not client_coordinates:
+                    client_coordinates = fetch_coordinates(
+                        settings.YANDEX_API_KEY, order.address)
+                    Location.objects.create(
+                        address=order.address,
+                        latitude=client_coordinates[0],
+                        longitude=client_coordinates[1])
         chosed_restaurant_distance = 0
 
         if order.restaurant:
@@ -132,25 +131,24 @@ def view_orders(request):
                 client_coordinates,
                 order.restaurant.latitude,
                 order.restaurant.longitude)
-        
-        restaraunts = RestaurantMenuItem.objects.all()
+
         ordered_products = order.client.select_related(
             'product').values('product').distinct()
 
-        restaurants = Restaurant.objects.all()       
-        
+        restaurants = Restaurant.objects.all()
+
         for product in ordered_products:
             menus = RestaurantMenuItem.objects.filter(
                 product=product['product'])
             restaurants = restaurants.filter(menu_items__in=menus)
             for restaurant in restaurants:
-               distanceses.append(
-                   get_distance(
-                   client_coordinates,
-                   restaurant.latitude,
-                   restaurant.longitude)
-                   )      
-        
+                distanceses.append(
+                    get_distance(
+                        client_coordinates,
+                        restaurant.latitude,
+                        restaurant.longitude)
+                    )
+
         order_items.append(
             {
                 'id': order.id,
@@ -158,7 +156,9 @@ def view_orders(request):
                 'client': order.lastname,
                 'phonenumber': order.phonenumber,
                 'address': order.address,
-                'edit_order': reverse('admin:foodcartapp_order_change', args=(order.id,)),
+                'edit_order': reverse(
+                    'admin:foodcartapp_order_change',
+                    args=(order.id,)),
                 'current_url': current_url,
                 'order_status': order.get_status_display(),
                 'comment': order.comment,
