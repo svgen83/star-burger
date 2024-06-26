@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 
@@ -86,7 +86,7 @@ class Product(models.Model):
     )
     price = models.DecimalField(
         'цена',
-        max_digits=8,
+        max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(0)]
     )
@@ -253,7 +253,9 @@ class OrderDetails(models.Model):
         related_name='products',
         on_delete=models.CASCADE)
     quantity = models.IntegerField(
-        verbose_name='Количество')
+        verbose_name='Количество',
+        validators=[
+            MaxValueValidator(10)])
     cost = models.DecimalField(
         'Стоимость',
         max_digits=10,
