@@ -69,14 +69,8 @@ def product_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    order_db = serializer.data
     order_description = serializer.validated_data
-
-    order_db, created = Order.objects.get_or_create(
-        firstname=order_description['firstname'],
-        lastname=order_description['lastname'],
-        phonenumber=order_description['phonenumber'],
-        address=order_description['address']
-    )
     if not Location.objects.filter(address=order_description['address']):
         coordinates = fetch_coordinates(settings.YANDEX_API_KEY,
                                         order_description['address'])
@@ -86,27 +80,6 @@ def register_order(request):
                 latitude=coordinates[0],
                 longitude=coordinates[1]
             )
-
-    all_products = Product.objects.all()
-    for product_item in order_description['products']:
-        OrderDetails.objects.get_or_create(
-            order=order_db,
-            product=all_products.get(id=product_item['product'].id),
-            quantity=product_item['quantity'],
-            cost=all_products.get(
-                id=product_item[
-                    'product'].id).price * product_item[
-                        'quantity']
-            )
-
-    order_response = {
-        'id': order_db.id,
-        'firstname': order_description['firstname'],
-        'lastname': order_description['lastname'],
-        'phonenumber': order_description['phonenumber'],
-        'address': order_description['address']
-    }
-
-    serializer_response = OrderFrontendSerializer(data=order_response)
+    serializer_response = OrderFrontendSerializer(data=order_db)
     serializer_response.is_valid(raise_exception=True)
-    return Response(order_response)
+    return Response(order_db)

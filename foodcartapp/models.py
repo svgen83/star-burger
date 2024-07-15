@@ -267,6 +267,13 @@ class OrderDetails(models.Model):
     class Meta:
         verbose_name = 'состав заказа'
         verbose_name_plural = 'состав заказов'
+    
+    def cost_value(self):
+        price = self.product.price
+        cost = price * self.quantity
+        self.cost = cost
+        self.save()
+
 
     def __str__(self):
         return self.order.lastname
