@@ -254,11 +254,10 @@ class OrderDetails(models.Model):
         on_delete=models.CASCADE)
     quantity = models.IntegerField(
         verbose_name='Количество',
-        validators=[
-            MaxValueValidator(10)])
+        validators=[MaxValueValidator(99), MinValueValidator(1)])
     cost = models.DecimalField(
         'Стоимость',
-        max_digits=10,
+        max_digits=6,
         decimal_places=2,
         validators=[MinValueValidator(0)])
 
