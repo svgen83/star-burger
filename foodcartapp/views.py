@@ -1,3 +1,5 @@
+import logging
+
 from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
@@ -71,15 +73,24 @@ def register_order(request):
     serializer.is_valid(raise_exception=True)
     order_db = serializer.data
     order_description = serializer.validated_data
-    if not Location.objects.filter(address=order_description['address']):
-        coordinates = fetch_coordinates(settings.YANDEX_API_KEY,
-                                        order_description['address'])
-        if coordinates:
-            Location.objects.create(
+    try:
+        location = Location.objects.get_or_create(
+            address=order_description['address'],
+        )
+    except Location.DoesNotExist:
+        try:
+            coordinates = fetch_coordinates(
+                settings.YANDEX_API_KEY,
+                order_description['address']
+                )
+            location = Location.objects.create(
                 address=order_description['address'],
                 latitude=coordinates[0],
                 longitude=coordinates[1]
-            )
+                )
+        except requests.exceptions.HTTPError as err:
+            logging.error(err)
+            pass
     serializer_response = OrderFrontendSerializer(data=order_db)
     serializer_response.is_valid(raise_exception=True)
     return Response(order_db)

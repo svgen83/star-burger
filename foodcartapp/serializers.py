@@ -1,5 +1,7 @@
 from rest_framework.serializers import ModelSerializer
-from foodcartapp.models import Order, OrderDetails
+from foodcartapp.models import Order, OrderDetails, Location
+from restaurateur.geotools import fetch_coordinates
+from django.conf import settings
 
 
 class OrderDetailsSerializer(ModelSerializer):
@@ -19,7 +21,6 @@ class OrderSerializer(ModelSerializer):
         fields = ['firstname', 'lastname',
                   'address', 'phonenumber',
                   'products']
-
 
     def create(self, validation_data):
         order = Order.objects.create(
