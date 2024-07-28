@@ -152,7 +152,7 @@ def view_orders(request):
         order_items.append(
             {
                 'id': order.id,
-                'cost': float(order_cost['cost']),
+                'cost': order_cost['cost'],
                 'client': order.lastname,
                 'phonenumber': order.phonenumber,
                 'address': order.address,

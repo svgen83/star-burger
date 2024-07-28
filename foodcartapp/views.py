@@ -71,20 +71,20 @@ def product_list_api(request):
 def register_order(request):
     serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
+    serializer.save()
     order_db = serializer.data
-    order_description = serializer.validated_data
     try:
         location = Location.objects.get_or_create(
-            address=order_description['address'],
+            address=order_db['address'],
         )
     except Location.DoesNotExist:
         try:
             coordinates = fetch_coordinates(
                 settings.YANDEX_API_KEY,
-                order_description['address']
+                order_db['address']
                 )
             location = Location.objects.create(
-                address=order_description['address'],
+                address=order_db['address'],
                 latitude=coordinates[0],
                 longitude=coordinates[1]
                 )
