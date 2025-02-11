@@ -5,10 +5,15 @@ import dj_database_url
 from environs import Env
 
 
-env = Env()
-env.read_env()
+
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+env = Env()
+env.read_env()
+#env.read_env(os.path.join(BASE_DIR, '.env')
+
+
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 
@@ -16,7 +21,7 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 YANDEX_API_KEY = env('YANDEX_API_KEY')
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
