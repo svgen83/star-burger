@@ -16,7 +16,7 @@ env.read_env()
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-
+ENVIRONMENT = env('ENVIRONMENT', 'production')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 YANDEX_API_KEY = env('YANDEX_API_KEY')
@@ -46,7 +46,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'rollbar.contrib.django.middleware.RollbarNotifierMiddleware'
+    'rollbar.contrib.django.middleware.RollbarNotifierMiddlewareExcluding404'
 ]
 
 
@@ -113,7 +113,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
-    'environment': 'development' if DEBUG else 'production',
+    'environment': ENVIRONMENT #'development' if DEBUG else 'production',
     'code_version': '1.0',
     'root': BASE_DIR,
 }
