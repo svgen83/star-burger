@@ -16,7 +16,6 @@ env.read_env()
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-ENVIRONMENT = env('ENVIRONMENT', 'production')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 YANDEX_API_KEY = env('YANDEX_API_KEY')
@@ -113,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
-    'environment': ENVIRONMENT #'development' if DEBUG else 'production',
+    'environment': env('ENVIRONMENT', production), #'development' if DEBUG else 'production',
     'code_version': '1.0',
     'root': BASE_DIR,
 }
