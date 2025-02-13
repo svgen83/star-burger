@@ -5,13 +5,9 @@ import dj_database_url
 from environs import Env
 
 
-
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 env = Env()
 env.read_env()
-#env.read_env(os.path.join(BASE_DIR, '.env')
-
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -19,6 +15,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 YANDEX_API_KEY = env('YANDEX_API_KEY')
+DB_URL = env.dj_db_url('DB_URL')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
@@ -34,6 +31,7 @@ INSTALLED_APPS = [
     'debug_toolbar',
     'phonenumber_field',
     'rest_framework',
+    'django_dump_load_utf8'
 ]
 
 MIDDLEWARE = [
@@ -90,10 +88,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:////{0}'.format(os.path.join(BASE_DIR, 'db.sqlite3'))
-    )
-}
+    'default': {
+        'ENGINE': DB_URL['ENGINE'],
+        'NAME': DB_URL['NAME'],
+        'USER': DB_URL['USER'],
+        'PASSWORD': DB_URL['PASSWORD'],
+        'HOST': DB_URL['HOST'],
+        'PORT': DB_URL['PORT'],
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -112,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
-    'environment': env('ENVIRONMENT', production), #'development' if DEBUG else 'production',
+    'environment': env('ENVIRONMENT', 'production'), #'development' if DEBUG else 'production',
     'code_version': '1.0',
     'root': BASE_DIR,
 }
