@@ -96,6 +96,7 @@ DATABASES = {
         'HOST': DB_URL['HOST'],
         'PORT': DB_URL['PORT'],
     }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
