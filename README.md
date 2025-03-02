@@ -136,18 +136,65 @@ Parcel будет следить за файлами в каталоге `bundle
 
 ## Как запустить prod-версию сайта
 
-Собрать фронтенд:
+Для запуска prod-версии скопируйте код на сервер (лучше использовать каталог /opt/. а также создать виртуальное окружение аналогичным образом, как указано для dev-версии.
 
-```sh
-./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
-```
+### Установите Postgres
+Рекомендуется использовать Postgres при деплое проекта. Вы можете скачать его с [официального сайта]().
+Пример настройки базы данных можно посмотреть [здесь]().
 
-Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
+
+Помимо этого потребуется создать файл `.env` в каталоге `star_burger/` со следующими настройками бэкэнда:
 
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/3.1/ref/settings/#allowed-hosts)
 - `YANDEX_API_KEY` — [API ключ Яндекс-геокодера](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
+- `ROLLBAR_TOKEN` - ключ от сервиса [Rollbar](https://rollbar.com)
+- `ENVIRONMENT` - название окружения в [Rollbar](https://rollbar.com)
+- DB_URL= 'настройки базы данных Postgres'
+
+### Установите Gunicorn
+pip install gunicorn
+Cоздайте файл /etc/systemd/system/burger-shop.service вида
+```
+[Unit]
+Description=burger_shop
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/starburger/
+ExecStart=/opt/starburger/PRG/bin/gunicorn -b 127.0.0.1:8080 star_burger.wsgi
+#ExecStart=/opt/starburger/PRG/bin/python3 manage.py runserver  217.12.37.183:80
+Restart=always
+                                                            
+[Install]
+WantedBy=multi-user.target
+```
+### Установите NGINX
+```                                                                                                                                                             
+apt install nginx
+```
+Создайте файл /etc/nginx/sites-enabled/star-burger вида
+```
+server {
+    listen 80 default;
+    location / {
+        include '/etc/nginx/proxy_params';
+        proxy_pass http://217.12.37.183:8000/;  # ! Замените адрес на свой
+    }
+    location /media/ {
+        alias /opt/starburger/media/;
+    }
+    location /staticfiles/ {
+        alias /opt/starburger/staticfiles/;
+    }
+
+}
+```
+
+
 
 ## Цели проекта
 
