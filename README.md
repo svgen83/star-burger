@@ -139,8 +139,8 @@ Parcel будет следить за файлами в каталоге `bundle
 Для запуска prod-версии скопируйте код на сервер (лучше использовать каталог /opt/. а также создать виртуальное окружение аналогичным образом, как указано для dev-версии.
 
 ### Установите Postgres
-Рекомендуется использовать Postgres при деплое проекта. Вы можете скачать его с [официального сайта]().
-Пример настройки базы данных можно посмотреть [здесь]().
+Рекомендуется использовать Postgres при деплое проекта. Вы можете скачать его с [официального сайта](https://www.psycopg.org).
+Пример настройки базы данных можно посмотреть [здесь](https://help.reg.ru/support/servery-vps/oblachnyye-servery/ustanovka-programmnogo-obespecheniya/rukovodstvo-po-postgresql#1).
 
 
 Помимо этого потребуется создать файл `.env` в каталоге `star_burger/` со следующими настройками бэкэнда:
@@ -151,7 +151,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YANDEX_API_KEY` — [API ключ Яндекс-геокодера](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
 - `ROLLBAR_TOKEN` - ключ от сервиса [Rollbar](https://rollbar.com)
 - `ENVIRONMENT` - название окружения в [Rollbar](https://rollbar.com)
-- DB_URL= 'настройки базы данных Postgres'
+- DB_URL= 'настройки базы данных Postgres' ([ о том, как их настроить в .env](https://github.com/jazzband/dj-database-url#url-schema))
 
 ### Установите Gunicorn
 pip install gunicorn
@@ -166,7 +166,6 @@ Requires=postgresql.service
 Type=simple
 WorkingDirectory=/opt/starburger/
 ExecStart=/opt/starburger/PRG/bin/gunicorn -b 127.0.0.1:8080 star_burger.wsgi
-#ExecStart=/opt/starburger/PRG/bin/python3 manage.py runserver  217.12.37.183:80
 Restart=always
                                                             
 [Install]
@@ -185,16 +184,72 @@ server {
         proxy_pass http://217.12.37.183:8000/;  # ! Замените адрес на свой
     }
     location /media/ {
-        alias /opt/starburger/media/;
+        alias /opt/starburger/media/;# ! Заменить путь к media на свой
     }
     location /staticfiles/ {
-        alias /opt/starburger/staticfiles/;
+        alias /opt/starburger/staticfiles/;# ! Заменить путь к static на свой
     }
 
 }
 ```
+Для запуска/перезапуска/остановки и т.д. серверов следует пользоваться [набором команд] (https://4te.me/post/shpargalka-systemd/).
+Этот же набор команд пригодится при создании дополнительных файлов сервиса и таймеров (см. далее).
 
+### Создайте дополнительные файлы
+В каталоге /etc/systemd/system/ создайте дополнительные файлы:
+Сервис для обновления сертификатов
+файл `certbot-renewal.service`(пример)
+```
+[Unit]
+Description=Certbot Renewal
 
+[Service]
+ExecStart=/usr/bin/certbot renew --force-renewal --post-hook "systemctl reload nginx.service"
+```
+
+Для автоматизации обновления сертификатов создайте файл `certbot-renewal.timer`(пример)
+```
+[Unit]
+Description=Timer for Certbot Renewal
+
+[Timer]
+OnBootSec=300
+OnUnitActiveSec=1w
+
+[Install]
+WantedBy=multi-user.target
+```
+Для удаления устаревших сессий clearsessions.service
+```
+[Unit]
+Description=clearsessions
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/starburger/
+ExecStart=/opt/starburger/PRG/bin/python3 manage.py clearsessions
+
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+```
+
+И соотвествующий таймер clearsessions.timer
+```
+[Unit]
+Description=Timer for Clearsessions
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+AccuracySec=30s
+
+[Install]
+WantedBy=multi-user.target
+```
+### Автоматизация проекта
+В каталоге с проектом находится баш-скрипт `deploy.sh`. Его выполнение позволит обновить проект с git-хаба, установить зависимости, осуществить миграции базы данных, собрать статику, перезапустить сервера nginx и gunicorn.
 
 ## Цели проекта
 
