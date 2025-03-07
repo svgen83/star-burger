@@ -16,7 +16,7 @@ fi
 pip install -r requirements.txt
 npm ci --dev
 
-python manage.py makemigrations
+python manage.py makemigrations --dry-run --check
 python manage.py migrate
 python manage.py collectstatic --noinput
 
@@ -26,7 +26,7 @@ systemctl restart burger-shop.service
 
 
 export $(cat /opt/starburger/.env  | grep ROLLBAR_TOKEN | tr -d \')
-export $(cat /opt/starburger/.env  | grep ENVIRONMENT| tr -d \')
+export $(cat /opt/starburger/.env  | grep ENVIRONMENT)
 
 
 GIT_REVISION=$(git rev-parse --short HEAD)
