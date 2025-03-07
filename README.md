@@ -151,7 +151,7 @@ Parcel будет следить за файлами в каталоге `bundle
 - `YANDEX_API_KEY` — [API ключ Яндекс-геокодера](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/)
 - `ROLLBAR_TOKEN` - ключ от сервиса [Rollbar](https://rollbar.com)
 - `ENVIRONMENT` - название окружения в [Rollbar](https://rollbar.com)
-- DB_URL= 'настройки базы данных Postgres' ([ о том, как их настроить в .env](https://github.com/jazzband/dj-database-url#url-schema))
+- DATABASE_URL= 'настройки базы данных Postgres вида 'postgresql://USER:PASSWORD@HOSTt:/NAME' ' ([ о том, как их настроить в .env](https://github.com/jazzband/dj-database-url#url-schema))
 
 ### Установите Gunicorn
 pip install gunicorn
@@ -165,7 +165,7 @@ Requires=postgresql.service
 [Service]
 Type=simple
 WorkingDirectory=/opt/starburger/
-ExecStart=/opt/starburger/PRG/bin/gunicorn -b 127.0.0.1:8080 star_burger.wsgi
+ExecStart=/opt/starburger/PRG/bin/gunicorn -w 3 -b 127.0.0.1:8080 star_burger.wsgi
 Restart=always
                                                             
 [Install]
