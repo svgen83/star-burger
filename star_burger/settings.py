@@ -15,8 +15,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', False)
 YANDEX_API_KEY = env('YANDEX_API_KEY')
-DB_URL = env.dj_db_url('DB_URL')
-
+ROLLBAR_TOKEN = env('ROLLBAR_TOKEN', False)
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS')
 
 INSTALLED_APPS = [
@@ -109,12 +108,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ROLLBAR = {
+if ROLLBAR_TOKEN:
+    ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
     'environment': env('ENVIRONMENT', 'production'),
     'code_version': '1.0',
     'root': BASE_DIR,
-}
+    }
 
 LANGUAGE_CODE = 'ru-RU'
 
@@ -131,7 +131,6 @@ STATIC_URL = '/static/'
 INTERNAL_IPS = [
     '127.0.0.1'
 ]
-
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "assets"),
