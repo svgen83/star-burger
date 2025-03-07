@@ -88,14 +88,10 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
 DATABASES = {
-    'default': {
-        'ENGINE': DB_URL['ENGINE'],
-        'NAME': DB_URL['NAME'],
-        'USER': DB_URL['USER'],
-        'PASSWORD': DB_URL['PASSWORD'],
-        'HOST': DB_URL['HOST'],
-        'PORT': DB_URL['PORT'],
-    }
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    ),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -115,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 ROLLBAR = {
     'access_token': env('ROLLBAR_TOKEN'),
-    'environment': env('ENVIRONMENT', 'production'), #'development' if DEBUG else 'production',
+    'environment': env('ENVIRONMENT', 'production'),
     'code_version': '1.0',
     'root': BASE_DIR,
 }
