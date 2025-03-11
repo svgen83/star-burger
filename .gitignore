@@ -1,6 +1,8 @@
 bundles/**
 node_modules/
 media/
+static/
+staticfiles/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -116,6 +118,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+PRG/
 
 # Spyder project settings
 .spyderproject
