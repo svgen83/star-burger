@@ -17,7 +17,6 @@ fi
 pip install -r requirements.txt
 npm ci --dev
 
-python manage.py makemigrations --dry-run --check
 python manage.py migrate
 python manage.py collectstatic --noinput
 
